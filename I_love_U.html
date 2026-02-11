@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para el amor de mi vida</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #fdf2f0 0%, #fce8e4 40%, #f8d9d2 100%);
+    font-family: 'Lora', Georgia, serif;
+    color: #5a3a3a;
+    overflow-x: hidden;
+    padding: 24px 0;
+  }
+
+  /* ═══════════════════════════════════════
+     SPLASH / LOADING SCREEN
+     ═══════════════════════════════════════ */
+  .splash {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #fdf2f0 0%, #fce8e4 40%, #f8d9d2 100%);
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .splash.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .splash-tree-wrap {
+    width: 380px;
+    max-width: 85vw;
+    height: 360px;
+    max-height: 45vh;
+    animation: treeGrow 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .splash-tree-wrap canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  @keyframes treeGrow {
+    0%   { transform: scale(0.15) translateY(60px); opacity: 0; }
+    30%  { opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .splash-text {
+    font-family: 'Dancing Script', cursive;
+    font-size: 28px;
+    color: #c45c72;
+    margin-top: 28px;
+    opacity: 0;
+    animation: splashTextIn 0.9s ease-out 0.7s forwards;
+  }
+
+  @keyframes splashTextIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .splash-dots {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .splash-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e8536e;
+    opacity: 0.3;
+    animation: dotPulse 1.2s ease-in-out infinite;
+  }
+
+  .splash-dot:nth-child(2) { animation-delay: 0.2s; }
+  .splash-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dotPulse {
+    0%, 100% { opacity: 0.25; transform: scale(0.8); }
+    50%      { opacity: 1; transform: scale(1.3); }
+  }
+
+  .splash-enter {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 14px;
+    color: #c45c72;
+    margin-top: 28px;
+    opacity: 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: tapFadeIn 0.8s ease-out 1.4s forwards, tapPulse 2s ease-in-out 2.2s infinite;
+  }
+
+  @keyframes tapFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 0.8; transform: translateY(0); }
+  }
+
+  @keyframes tapPulse {
+    0%, 100% { opacity: 0.6; }
+    50%      { opacity: 1; }
+  }
+
+  /* ═══════════════════════════════════════
+     MAIN CONTENT (hidden until splash ends)
+     ═══════════════════════════════════════ */
+  .main-content {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 1s ease-out, transform 1s ease-out;
+    pointer-events: none;
+    width: 100%;
+    padding: 0 12px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .main-content.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* Staggered reveal for children */
+  .main-content.visible .tree-container {
+    animation: revealUp 0.8s ease-out 0.1s both;
+  }
+  .main-content.visible .letter {
+    animation: revealUp 0.8s ease-out 0.4s both;
+  }
+  .main-content.visible .counter-section {
+    animation: revealUp 0.8s ease-out 0.7s both;
+  }
+
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Floating hearts background */
+  .bg-hearts {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-heart {
+    position: absolute;
+    font-size: 14px;
+    opacity: 0;
+    animation: floatUp linear infinite;
+  }
+
+  @keyframes floatUp {
+    0%   { transform: translateY(100vh) rotate(0deg) scale(0.5); opacity: 0; }
+    10%  { opacity: 0.25; }
+    90%  { opacity: 0.15; }
+    100% { transform: translateY(-10vh) rotate(360deg) scale(1); opacity: 0; }
+  }
+
+  /* Card */
+  .card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 520px;
+    min-height: auto;
+    background: rgba(255, 252, 250, 0.75);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 48px 44px 36px;
+    box-shadow:
+      0 4px 40px rgba(200, 100, 100, 0.1),
+      0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  /* Tree canvas */
+  .tree-container {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    margin-bottom: 12px;
+    opacity: 0;
+  }
+
+  canvas#heartTree {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Letter text */
+  .letter {
+    margin-bottom: 28px;
+    opacity: 0;
+  }
+
+  .letter .saludo {
+    font-family: 'Dancing Script', cursive;
+    font-size: 22px;
+    color: #c45c72;
+    margin-bottom: 14px;
+  }
+
+  .letter p {
+    font-size: 15.5px;
+    line-height: 1.75;
+    color: #6b4444;
+    margin-bottom: 6px;
+  }
+
+  .letter .firma {
+    font-family: 'Dancing Script', cursive;
+    font-size: 20px;
+    color: #d4687e;
+    margin-top: 14px;
+  }
+
+  /* Cute cat */
+  .cat-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 12px 0 24px;
+    opacity: 0;
+    position: relative;
+  }
+
+  .main-content.visible .cat-container {
+    animation: revealUp 0.8s ease-out 0.55s both;
+  }
+
+  .cat-img {
+    width: 180px;
+    height: auto;
+    border-radius: 16px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));
+    transition: transform 0.4s ease;
+  }
+
+  .cat-img:hover {
+    transform: scale(1.05);
+  }
+
+  .cat-floating-hearts {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .cat-heart {
+    position: absolute;
+    bottom: 0;
+    font-size: 14px;
+    color: #e8536e;
+    opacity: 0;
+    animation: catHeartRise 3.5s ease-in-out infinite;
+  }
+
+  @keyframes catHeartRise {
+    0%       { opacity: 0; transform: translateY(0) scale(0.6); }
+    20%      { opacity: 0.8; }
+    80%      { opacity: 0.4; }
+    100%     { opacity: 0; transform: translateY(-120px) scale(1); }
+  }
+
+  /* Counter section */
+  .counter-section {
+    border-top: 1px solid rgba(200, 130, 130, 0.2);
+    padding-top: 22px;
+    text-align: center;
+    opacity: 0;
+  }
+
+  .counter-label {
+    font-family: 'Dancing Script', cursive;
+    font-size: 19px;
+    color: #c45c72;
+    margin-bottom: 16px;
+  }
+
+  .counter-boxes {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .counter-box {
+    background: linear-gradient(135deg, #e8536e, #d4476a);
+    color: white;
+    border-radius: 10px;
+    padding: 10px 6px;
+    min-width: 72px;
+    text-align: center;
+    box-shadow:
+      0 3px 12px rgba(210, 70, 100, 0.3),
+      inset 0 1px 0 rgba(255,255,255,0.15);
+    transition: transform 0.3s ease;
+  }
+
+  .counter-box:hover {
+    transform: translateY(-3px);
+  }
+
+  .counter-box .number {
+    font-family: 'Lora', serif;
+    font-size: 28px;
+    font-weight: 700;
+    display: block;
+    line-height: 1.1;
+  }
+
+  .counter-box .unit {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.85;
+    margin-top: 2px;
+    display: block;
+  }
+
+  .counter-box.seconds .number {
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+  }
+
+  /* Music button */
+  .music-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #e8536e, #d4476a);
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(210, 70, 100, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .music-btn.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .music-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 24px rgba(210, 70, 100, 0.5);
+  }
+
+  .music-btn.playing {
+    animation: btnPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes btnPulse {
+    0%, 100% { box-shadow: 0 4px 16px rgba(210, 70, 100, 0.4); }
+    50%      { box-shadow: 0 4px 28px rgba(210, 70, 100, 0.7); }
+  }
+
+  /* ═══════════════════════════════════════
+     RESPONSIVE
+     ═══════════════════════════════════════ */
+
+  /* Tablets & small laptops */
+  @media (max-width: 600px) {
+    body {
+      align-items: flex-start;
+      padding: 16px 0;
+    }
+
+    .card {
+      width: 94vw;
+      max-width: 520px;
+      padding: 32px 28px 28px;
+      min-height: auto;
+      border-radius: 16px;
+    }
+
+    .tree-container { height: 220px; }
+
+    .letter .saludo { font-size: 20px; }
+    .letter p { font-size: 14.5px; }
+    .letter .firma { font-size: 18px; }
+
+    .counter-label { font-size: 17px; }
+
+    .counter-boxes { gap: 8px; }
+    .counter-box {
+      min-width: 65px;
+      padding: 9px 5px;
+      border-radius: 8px;
+    }
+    .counter-box .number { font-size: 24px; }
+    .counter-box .unit { font-size: 10px; }
+
+    .splash-tree-wrap { width: 300px; height: 280px; }
+    .splash-text { font-size: 24px; margin-top: 20px; }
+  }
+
+  /* Phones */
+  @media (max-width: 420px) {
+    body { padding: 10px 0; }
+
+    .card {
+      width: 96vw;
+      padding: 24px 20px 22px;
+      border-radius: 14px;
+    }
+
+    .tree-container { height: 190px; margin-bottom: 8px; }
+
+    .letter { margin-bottom: 20px; }
+    .letter .saludo { font-size: 18px; margin-bottom: 10px; }
+    .letter p { font-size: 13.5px; line-height: 1.65; }
+    .letter .firma { font-size: 17px; margin-top: 10px; }
+
+    .counter-section { padding-top: 16px; }
+    .counter-label { font-size: 16px; margin-bottom: 12px; }
+
+    .counter-boxes { gap: 6px; }
+    .counter-box {
+      min-width: 0;
+      flex: 1 1 0;
+      padding: 8px 4px;
+      border-radius: 8px;
+    }
+    .counter-box .number { font-size: 21px; }
+    .counter-box .unit { font-size: 9px; letter-spacing: 0.5px; }
+
+    .splash-tree-wrap { width: 260px; height: 240px; }
+    .splash-text { font-size: 20px; margin-top: 16px; }
+    .splash-dots { margin-top: 16px; gap: 8px; }
+
+    .music-btn {
+      width: 44px;
+      height: 44px;
+      bottom: 16px;
+      right: 16px;
+      font-size: 17px;
+    }
+  }
+
+  /* Very small phones (SE, Galaxy S mini, etc) */
+  @media (max-width: 360px) {
+    .card { padding: 20px 16px 18px; }
+    .tree-container { height: 160px; }
+    .letter .saludo { font-size: 17px; }
+    .letter p { font-size: 13px; }
+    .counter-box .number { font-size: 18px; }
+    .counter-box .unit { font-size: 8px; }
+    .splash-tree-wrap { width: 220px; height: 200px; }
+    .splash-text { font-size: 18px; }
+  }
+
+  /* Landscape phones */
+  @media (max-height: 500px) and (orientation: landscape) {
+    body {
+      align-items: flex-start;
+      padding: 10px 0;
+    }
+    .card { min-height: auto; }
+    .tree-container { height: 150px; }
+    .splash-tree-wrap { width: 200px; height: 180px; }
+    .splash-text { font-size: 18px; margin-top: 10px; }
+    .splash-dots { margin-top: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ SPLASH SCREEN ═══ -->
+<div class="splash" id="splash">
+  <div class="splash-tree-wrap">
+    <canvas id="splashTree" width="380" height="360"></canvas>
+  </div>
+  <div class="splash-text">Cargando nuestro amor...</div>
+  <div class="splash-dots">
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+  </div>
+  <div class="splash-enter">&#9829; Toca para entrar &#9829;</div>
+</div>
+
+<!-- Background music - tries multiple possible filenames -->
+<audio id="bgMusic" loop preload="auto">
+  <source src="ylang-ylang.mp3" type="audio/mpeg">
+  <source src="ylang-ylang.mp3.mp3" type="audio/mpeg">
+  <source src="Ylang-Ylang.mp3" type="audio/mpeg">
+  <source src="ylang ylang.mp3" type="audio/mpeg">
+  <source src="musica.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Floating background hearts -->
+<div class="bg-hearts" id="bgHearts"></div>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<div class="main-content" id="mainContent">
+  <div class="card">
+    <div class="tree-container">
+      <canvas id="heartTree"></canvas>
+    </div>
+
+    <div class="letter">
+      <div class="saludo">Para Nuri, el amor de mi vida:</div>
+      <p>
+        Buenos días, princesa. Me es un honor invitarla el día 14 de febrero
+        a degustar unos exquisitos sushis al lugar que usted decida.
+        Espero su confirmación por mensaje.
+      </p>
+      <p style="margin-top: 12px;">
+        A... y también quiero decirte que...
+      </p>
+      <p>
+        Me siento muy feliz de que estés conmigo. Las cosas a veces no son
+        como quisiera, pero estoy tratando de ser una mejor persona para ti.
+        En el intento me frustro y me estreso, pero cuando llega el fin de
+        semana, sé que mi premio son tus brazos, tus besos y tus abrazos.
+      </p>
+      <p>
+        Quiero decirte también que estoy muy orgulloso por todo lo que has
+        logrado. Eres una niña grande y valiente, tienes un gran corazón;
+        ese mismo que quiero cuidar y proteger.
+      </p>
+      <p>
+        Debo confesarte que me agrada mucho que convivas con mi familia.
+        Me da mucho gusto que te traten bien y que me pregunten por ti.
+      </p>
+      <p>
+        Me gusta pasar tiempo contigo, cocinar contigo, hacer labores
+        domésticas contigo y cuidar a nuestro hermoso gatito.
+      </p>
+      <p>
+        Cuídame mucho cuando yo no esté. No puedo dejar que nada le pase
+        a la mujer de mi vida.
+      </p>
+      <p>
+        Me despido con mucho amor y espero tu confirmación &#10084;&#65039;
+      </p>
+      <div class="firma">Te ama y te admira,... Alan &#10084;&#65039;</div>
+    </div>
+
+    <!-- Cute tuxedo cat -->
+    <div class="cat-container">
+      <img src="cat.png" alt="Nuestro gatito" class="cat-img"/>
+      <div class="cat-floating-hearts">
+        <span class="cat-heart" style="left:10%; animation-delay:0s;">♥</span>
+        <span class="cat-heart" style="left:80%; animation-delay:1s;">♥</span>
+        <span class="cat-heart" style="left:50%; animation-delay:2s;">♥</span>
+      </div>
+    </div>
+
+    <div class="counter-section">
+      <div class="counter-label">Mi amor por ti comenzó hace...</div>
+      <div class="counter-boxes" id="counterBoxes">
+        <div class="counter-box">
+          <span class="number" id="days">0</span>
+          <span class="unit">días</span>
+        </div>
+        <div class="counter-box">
+          <span class="number" id="hours">0</span>
+          <span class="unit">horas</span>
+        </div>
+        <div class="counter-box">
+          <span class="number" id="minutes">0</span>
+          <span class="unit">minutos</span>
+        </div>
+        <div class="counter-box seconds">
+          <span class="number" id="seconds">0</span>
+          <span class="unit">segundos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="music-btn" id="musicBtn" title="Play / Pause música">&#9654;</button>
+
+<script>
+// ═══════════════════════════════════════
+// SHARED: Draw heart tree on any canvas
+// ═══════════════════════════════════════
+function drawHeartTreeOnCanvas(canvas, scaleFactor) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.width;
+  const H = canvas.height;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const s = scaleFactor || 1;
+  const cx = W * 0.5;
+  const baseY = H - 18;
+
+  // Trunk & branches
+  ctx.lineCap = 'round';
+
+  function drawBranch(x, y, angle, length, depth) {
+    if (depth === 0 || length < 3) return;
+    const endX = x + Math.cos(angle) * length;
+    const endY = y + Math.sin(angle) * length;
+    ctx.beginPath();
+    ctx.lineWidth = depth * 1.3;
+    ctx.strokeStyle = depth > 3 ? '#8B5E3C' : '#a5724a';
+    ctx.moveTo(x, y);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+    drawBranch(endX, endY, angle - 0.35 + Math.random() * 0.15, length * 0.72, depth - 1);
+    drawBranch(endX, endY, angle + 0.3 + Math.random() * 0.15, length * 0.72, depth - 1);
+    if (depth > 3) {
+      drawBranch(endX, endY, angle + Math.random() * 0.3 - 0.15, length * 0.6, depth - 2);
+    }
+  }
+
+  drawBranch(cx, baseY, -Math.PI / 2, 62 * s, 8);
+
+  // Heart leaves
+  const heartColors = [
+    '#e8536e','#f06292','#ff8a9e','#f7b5c2','#ffcdd2',
+    '#d4476a','#ff6b8a','#f48fb1','#ffa3b5','#c94070',
+    '#ff4081','#ff80ab','#f8bbd0','#e57399','#ffab91',
+    '#ff7043','#ffd54f','#fff176','#ffb74d','#ff8a65'
+  ];
+
+  function drawHeart(x, y, size, color) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.7 + Math.random() * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(x, y + size * 0.3);
+    ctx.bezierCurveTo(x, y, x - size, y, x - size, y + size * 0.3);
+    ctx.bezierCurveTo(x - size, y + size * 0.65, x, y + size * 0.9, x, y + size);
+    ctx.bezierCurveTo(x, y + size * 0.9, x + size, y + size * 0.65, x + size, y + size * 0.3);
+    ctx.bezierCurveTo(x + size, y, x, y, x, y + size * 0.3);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const cloudCX = cx;
+  const cloudCY = baseY - 155 * s;
+
+  for (let i = 0; i < 200; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const rx = (95 + Math.random() * 55) * s;
+    const ry = (68 + Math.random() * 40) * s;
+    const dist = Math.sqrt(Math.random());
+    const hx = cloudCX + Math.cos(angle) * rx * dist;
+    const hy = cloudCY + Math.sin(angle) * ry * dist - 10 * s;
+    const size = (3 + Math.random() * 8) * s;
+    const color = heartColors[Math.floor(Math.random() * heartColors.length)];
+    drawHeart(hx, hy, size, color);
+  }
+
+  // Top-right cluster
+  for (let i = 0; i < 45; i++) {
+    const hx = cloudCX + (50 + Math.random() * 65) * s;
+    const hy = cloudCY - (20 + Math.random() * 50) * s;
+    const size = (2 + Math.random() * 5) * s;
+    const color = heartColors[Math.floor(Math.random() * heartColors.length)];
+    drawHeart(hx, hy, size, color);
+  }
+
+  // Falling hearts near trunk
+  for (let i = 0; i < 14; i++) {
+    const hx = cx - 30 * s + Math.random() * 60 * s;
+    const hy = baseY - 50 * s + Math.random() * 40 * s;
+    const size = (2 + Math.random() * 4) * s;
+    const color = heartColors[Math.floor(Math.random() * heartColors.length)];
+    drawHeart(hx, hy, size, color);
+  }
+}
+
+// ═══════════════════════════════════════
+// 1. DRAW SPLASH TREE IMMEDIATELY
+// ═══════════════════════════════════════
+drawHeartTreeOnCanvas(document.getElementById('splashTree'), 1);
+
+// ═══════════════════════════════════════
+// 2. CLICK TO ENTER: splash → music + main
+// ═══════════════════════════════════════
+const splash = document.getElementById('splash');
+const mainContent = document.getElementById('mainContent');
+const music = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('musicBtn');
+let isPlaying = false;
+let hasEntered = false;
+
+function enterSite() {
+  if (hasEntered) return;
+  hasEntered = true;
+
+  // Start music immediately on user interaction
+  music.play().then(() => {
+    isPlaying = true;
+    musicBtn.innerHTML = '&#10074;&#10074;';
+    musicBtn.classList.add('playing');
+  }).catch(() => {});
+
+  // Hide splash
+  splash.classList.add('hidden');
+
+  // Reveal main content after splash fades
+  setTimeout(() => {
+    const cardCanvas = document.getElementById('heartTree');
+    const rect = cardCanvas.parentElement.getBoundingClientRect();
+    cardCanvas.width = rect.width;
+    cardCanvas.height = rect.height;
+    drawHeartTreeOnCanvas(cardCanvas, 0.8);
+
+    mainContent.classList.add('visible');
+    musicBtn.classList.add('show');
+  }, 400);
+}
+
+splash.addEventListener('click', enterSite);
+splash.addEventListener('touchend', enterSite);
+
+// ═══════════════════════════════════════
+// BACKGROUND HEARTS
+// ═══════════════════════════════════════
+(function createBgHearts() {
+  const container = document.getElementById('bgHearts');
+  const hearts = ['♥', '♡', '❤', '💕'];
+  const colors = ['#e8536e','#f2889b','#d4476a','#f7b5c2','#ff6b8a','#c94070'];
+  for (let i = 0; i < 25; i++) {
+    const span = document.createElement('span');
+    span.className = 'bg-heart';
+    span.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+    span.style.left = Math.random() * 100 + '%';
+    span.style.color = colors[Math.floor(Math.random() * colors.length)];
+    span.style.fontSize = (10 + Math.random() * 18) + 'px';
+    span.style.animationDuration = (8 + Math.random() * 14) + 's';
+    span.style.animationDelay = (Math.random() * 12) + 's';
+    container.appendChild(span);
+  }
+})();
+
+// ═══════════════════════════════════════
+// MUSIC TOGGLE
+// ═══════════════════════════════════════
+function toggleMusic() {
+  if (isPlaying) {
+    music.pause();
+    musicBtn.innerHTML = '&#9654;';
+    musicBtn.classList.remove('playing');
+  } else {
+    music.play();
+    musicBtn.innerHTML = '&#10074;&#10074;';
+    musicBtn.classList.add('playing');
+  }
+  isPlaying = !isPlaying;
+}
+
+musicBtn.addEventListener('click', toggleMusic);
+
+// ═══════════════════════════════════════
+// COUNTER
+// ═══════════════════════════════════════
+const startDate = new Date('2021-10-16T00:00:00');
+
+function updateCounter() {
+  const now = new Date();
+  let diff = now - startDate;
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  diff -= days * (1000 * 60 * 60 * 24);
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  diff -= hours * (1000 * 60 * 60);
+  const minutes = Math.floor(diff / (1000 * 60));
+  diff -= minutes * (1000 * 60);
+  const secs = Math.floor(diff / 1000);
+
+  document.getElementById('days').textContent = String(days).padStart(2, '0');
+  document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+  document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+  document.getElementById('seconds').textContent = String(secs).padStart(2, '0');
+}
+
+updateCounter();
+setInterval(updateCounter, 1000);
+</script>
+</body>
+</html>
